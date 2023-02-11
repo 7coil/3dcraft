@@ -23,10 +23,8 @@ ____modules = {
 ["index"] = function(...) 
 --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
 rednet.open("right")
-id, msg = rednet.receive()
-if msg == "start" then
-    print("hello")
-end
+rednet.broadcast("start")
+rednet.close("right")
  end,
 }
 return require("index", ...)
