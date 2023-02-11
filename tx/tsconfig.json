@@ -8,7 +8,7 @@
 	},
 	"tstl": {
 		"luaTarget": "JIT",
-		"luaBundle": "./dist/createBlocks.lua",
+		"luaBundle": "./dist/turtleScript.lua",
 		"luaBundleEntry": "./src/index.ts"
 	}
 }
