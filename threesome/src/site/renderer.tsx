@@ -1,6 +1,6 @@
 import { OrbitControls } from "@react-three/drei";
-import { Canvas, ThreeElements } from "@react-three/fiber";
-import React, { useState } from "react";
+import { Canvas } from "@react-three/fiber";
+import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Group } from "three";
 import { STLExporter } from "three/examples/jsm/exporters/STLExporter";
@@ -34,38 +34,32 @@ function Box({ loc }: IBoxProps) {
   );
 }
 
-const datastructure = {
-  blocks: [
-    [
-      // Y = 0
-      [0, 0, 1, 0, 0], // Z = 0
-      [0, 0, 1, 1, 0], // Z = 1
-      [0, 1, 1, 1, 0], // Z = 2
-      [0, 1, 1, 0, 0], // Z = 3
-      [0, 0, 0, 0, 0], // Z = 4
-    ],
-    [
-      // Y = 1
-      [0, 0, 0, 0, 0],
-      [0, 0, 0, 1, 0],
-      [0, 0, 1, 0, 0],
-      [0, 1, 0, 0, 0],
-      [0, 0, 0, 0, 0],
-    ],
-    [
-      // Y = 2
-      [0, 0, 0, 0, 0],
-      [0, 0, 0, 1, 0],
-      [0, 0, 0, 0, 0],
-      [0, 1, 0, 0, 0],
-      [0, 0, 0, 0, 0],
-    ],
-  ],
-} as const;
+interface IDataStructure {
+  blocks: (0 | 1)[][][]
+}
 
 const App = () => {
   const modelReference = React.createRef<Group>();
   const somethings: [number, number, number][] = [];
+
+  const [datastructure, setDatastructure] = useState<IDataStructure>({
+    blocks: []
+  });
+
+  useEffect(() => {
+    const onDataChange = (data: IDataStructure) => {
+      console.log("Received data!", data);
+      setDatastructure(data);
+    }
+
+    threesome.on("3dmodel", onDataChange);
+    
+    return () => {
+      threesome.off("3dmodel", onDataChange);
+    }
+  }, [])
+
+  console.log("rendering...", datastructure);
 
   for (let y = 0; y < GRID_SIZE.y; y++) {
     for (let z = 0; z < GRID_SIZE.z; z++) {
@@ -87,7 +81,7 @@ const App = () => {
             sceneToExport.rotateX(Math.PI / 2);
             sceneToExport.updateMatrixWorld();
             const result = exporter.parse(sceneToExport);
-            console.log(result);
+            threesome.save(result);
           }}
         >
           Export STL
