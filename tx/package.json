@@ -1,0 +1,14 @@
+{
+  "devDependencies": {
+    "typescript": "^4.9.5",
+    "typescript-to-lua": "^1.12.1"
+  },
+  "dependencies": {
+    "cc-tweaked-types": "github:tgcGlaDius/cc-tweaked-types",
+    "lua-types": "^2.13.1"
+  },
+  "scripts": {
+    "build": "tstl",
+    "dev": "tstl --watch"
+  }
+}
