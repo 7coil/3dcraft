@@ -8,7 +8,7 @@ const getApp = (browserWindow: BrowserWindow) => {
   app
     .use(bodyParser.json())
     .use("/submit", (req, res) => {
-      // browserWindow.webContents.send("3dmodel", req.body);
+      browserWindow.webContents.send("3dmodel", req.body);
       console.log(req.body);
 
       res.send("ok!");
