@@ -8,7 +8,7 @@ export default function createBlocks(y: number, z: number, x: number) {
 		for (let j = 0; j < z; j++) {
 			let rowArray: number[] = [];
 			for (let k = 0; k < x; k++) {
-				rowArray.push(k);
+				rowArray.push(0);
 			}
 			layer.push(rowArray);
 		}
@@ -17,4 +17,7 @@ export default function createBlocks(y: number, z: number, x: number) {
 	return matrix;
 }
 
-// let matrix = createBlocks(32, 32, 32);
+print("createBlocks() has executed.");
+
+let matrix = createBlocks(32, 32, 32);
+export { matrix };
