@@ -20,39 +20,45 @@ local function require(file, ...)
     end
 end
 ____modules = {
-["blocks"] = function(...) 
+["createBlocks"] = function(...) 
 --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
 local ____exports = {}
-local SIZE = 32
-local function generator(self)
-    local layer = {}
-    local col = {}
-    local row = {}
+function ____exports.default(self, x, y, z)
+    local matrix = {}
     do
         local i = 0
-        while i < SIZE do
+        while i < x do
             local layer = {}
             do
                 local j = 0
-                while j < SIZE do
-                    layer[#layer + 1] = col
+                while j < y do
+                    local rowArray = {}
+                    do
+                        local k = 0
+                        while k < z do
+                            rowArray[#rowArray + 1] = k
+                            k = k + 1
+                        end
+                    end
+                    layer[#layer + 1] = rowArray
                     j = j + 1
                 end
             end
+            matrix[#matrix + 1] = layer
             i = i + 1
         end
     end
-    return layer
+    return matrix
 end
-____exports.generator = generator
 return ____exports
  end,
 ["index"] = function(...) 
 --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
 local ____exports = {}
-local ____blocks = require("blocks")
-local generator = ____blocks.generator
-print(textutils.serializeJSON(generator(nil)))
+local ____createBlocks = require("createBlocks")
+local createBlocks = ____createBlocks.default
+local matrix = createBlocks(nil, 32, 32, 32)
+print(textutils.serializeJSON(matrix[6][8][19]))
 return ____exports
  end,
 }
