@@ -6,6 +6,33 @@ import { Group } from "three";
 import { STLExporter } from "three/examples/jsm/exporters/STLExporter";
 import "./index.css";
 
+enum BlockType {
+  AIR = "air",
+  BLOCK = "block",
+  TOP_SLAB = "top_slab",
+  BOTTOM_SLAB = "bottom_slab"
+}
+
+type SingleLayer = (BlockType.AIR | BlockType.BLOCK | BlockType.TOP_SLAB | BlockType.BOTTOM_SLAB)[][];
+interface IDataStructure {
+  blocks: SingleLayer[];
+}
+
+interface InspectItemData {
+  name: string;
+  state?: any;
+  tags: any;
+}
+interface IInputStructure {
+  blocks: (null | InspectItemData)[][];
+  minerID: string;
+}
+
+interface IBoxProps {
+  loc: [number, number, number];
+  block: BlockType;
+}
+
 // The number of millimeters that each cube should be sized as.
 const SCALE_FACTOR = 3 as const;
 const GRID_SIZE = {
@@ -14,39 +41,56 @@ const GRID_SIZE = {
   z: 32,
 } as const;
 
-interface IBoxProps {
-  loc: [number, number, number];
-}
+const getBlockType = (block: null | InspectItemData): BlockType => {
+  console.log("Interpreting...", block);
+  if (block === null) return BlockType.AIR;
+  if (block.name.includes("_slab")) {
+    switch(block?.state?.type) {
+      case "top":
+        return BlockType.TOP_SLAB
+      case "bottom":
+        return BlockType.BOTTOM_SLAB
+      case "double":
+        return BlockType.BLOCK
+      default:
+        return BlockType.AIR
+    }
+  };
+  return BlockType.BLOCK;
+};
 
-function Box({ loc }: IBoxProps) {
+function Box({ loc, block }: IBoxProps) {
   const [hovered, hover] = useState(false);
   const [x, y, z] = loc;
 
+  let geometry: [number, number, number] = [SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR];
+  const position: [number, number, number] = [x * SCALE_FACTOR, y * SCALE_FACTOR, z * SCALE_FACTOR];
+
+  if (block === BlockType.TOP_SLAB) {
+    geometry = [SCALE_FACTOR, SCALE_FACTOR / 2, SCALE_FACTOR]
+    position[1] += SCALE_FACTOR / 4
+  } else if (block === BlockType.BOTTOM_SLAB) {
+    geometry = [SCALE_FACTOR, SCALE_FACTOR / 2, SCALE_FACTOR]
+    position[1] -= SCALE_FACTOR / 4
+  } else if (block === BlockType.AIR) {
+    return null;
+  }
+
   return (
     <mesh
-      position={[x * SCALE_FACTOR, y * SCALE_FACTOR, z * SCALE_FACTOR]}
+      position={position}
       onPointerOver={(event) => hover(true)}
       onPointerOut={(event) => hover(false)}
     >
-      <boxGeometry args={[SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR]} />
+      <boxGeometry args={geometry} />
       <meshStandardMaterial color={hovered ? "hotpink" : "orange"} />
     </mesh>
   );
 }
 
-type SingleLayer = (0 | 1)[][];
-interface IDataStructure {
-  blocks: SingleLayer[];
-}
-
-interface IInputStructure {
-  blocks: SingleLayer;
-  minerID: string;
-}
-
 const App = () => {
   const modelReference = React.createRef<Group>();
-  const somethings: [number, number, number][] = [];
+  const somethings: [number, number, number, BlockType][] = [];
 
   const [layer0, setLayer0] = useState<SingleLayer>([]);
   const [layer1, setLayer1] = useState<SingleLayer>([]);
@@ -127,7 +171,9 @@ const App = () => {
       const [, minerNumberString] = /(\d+)/.exec(data.minerID);
       const minerNumber = parseInt(minerNumberString, 10);
 
-      setters[minerNumber - 1](data.blocks)
+      setters[minerNumber - 1](
+        data.blocks?.map((x) => x?.map?.((y) => getBlockType(y)))
+      );
     };
 
     threesome.on("3dmodel", onDataChange);
@@ -214,8 +260,9 @@ const App = () => {
   for (let x = 0; x < GRID_SIZE.x; x++) {
     for (let y = 0; y < GRID_SIZE.y; y++) {
       for (let z = 0; z < GRID_SIZE.z; z++) {
-        if (datastructure.blocks?.[x]?.[y]?.[z]) {
-          somethings.push([y, z, x]);
+        const dataAboutBlockAtPosition = datastructure.blocks?.[x]?.[y]?.[z];
+        if (dataAboutBlockAtPosition) {
+          somethings.push([y, z, x, dataAboutBlockAtPosition]);
         }
       }
     }
@@ -241,9 +288,11 @@ const App = () => {
         <ambientLight />
         <pointLight position={[10, 10, 10]} />
         <group ref={modelReference}>
-          {somethings.map(([y, z, x]) => (
-            <Box key={`${x},${y},${z}`} loc={[x, y, z]} />
-          ))}
+          {somethings
+            .filter(([y, z, x, blockType]) => blockType !== BlockType.AIR)
+            .map(([y, z, x, blockType]) => (
+              <Box key={`${x},${y},${z}`} loc={[x, y, z]} block={blockType} />
+            ))}
         </group>
         <gridHelper
           position={[

@@ -6,7 +6,7 @@ while (true) {
   const [id, msg] = rednet.receive();
   rednet.close("left");
 
-  let blocks: number[][] = [];
+  let blocks: (null | turtle.InspectItemData)[][] = [];
 
   const layers = msg as number;
   print("Signal recieved!");
@@ -18,18 +18,23 @@ while (true) {
   for (let y = 0; y < layers; y++) {
     blocks[y] = [];
     for (let x = 0; x < 32; x++) {
-      blocks[y][x] = 0;
+      blocks[y][x] = null;
     }
   }
 
   for (let y = 0; y < layers; y++) {
-    turtle.forward();
     for (let x = 0; x < 32; x++) {
-      const [block, reason] = turtle.dig();
+      const [success, block] = turtle.inspect();
+      turtle.dig();
       turtle.forward();
-      if (block == true) {
-        print("found Block");
-        blocks[y][x] = 1;
+      if (typeof block !== "string" && block !== null) {
+        print("Found a block!", block.name);
+
+        if (y % 2 === 1) {
+          blocks[y][31 - x] = block;
+        } else {
+          blocks[y][x] = block;
+        }
       }
     }
     turtle.forward();
@@ -48,13 +53,9 @@ while (true) {
     blocks,
   });
 
-  const request = http.request("http://127.0.0.1:3001/submit", returnArray, {
+  http.request("http://127.0.0.1:3001/submit", returnArray, {
     "Content-Type": "application/json",
   });
-
-  rednet.open("right");
-  rednet.send(4, returnArray);
-  rednet.close("right");
 
   for (let y = 0; y < layers; y++) {
     turtle.down();
