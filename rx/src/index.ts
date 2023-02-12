@@ -7,10 +7,12 @@ while (true) {
   rednet.close("left");
 
   let blocks: number[][] = [];
-  const layers = msg;
 
+  const layers = msg as number;
   print("Signal recieved!");
   print("Generating array..");
+
+  print("Printing layers: ", layers);
 
   // Initialise 2d Array of [[0,0,0],[0,0,0,0]] etc until 32 rows
   for (let y = 0; y < layers; y++) {

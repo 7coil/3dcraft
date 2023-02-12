@@ -1,8 +1,18 @@
-import createBlocks from "./createBlocks";
-import turtleMove from "./turtleMove";
-import recieveData from "./recieveData";
+const askForNumber = (question: string): number => {
+  while (true) {
+    print(question);
+    const answer = parseInt(read(), 10);
+    if (!isNaN(answer)) return answer;
+    print("That was not a valid input. Please try again.");
+  }
+};
 
-turtleMove();
-recieveData();
+print("TurtleScript")
+let buildHeight = askForNumber("Please enter a build height.");
 
-print("Index.ts has executed.");
+// If the build height is odd, add an extra layer to make it even.
+if (buildHeight % 2 === 1) buildHeight + 1
+
+rednet.open("right");
+rednet.broadcast(buildHeight);
+rednet.close("right");
